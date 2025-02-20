@@ -2,6 +2,31 @@ import { User } from "../models/user.model.js"
 import { uploadingOnCloudinary } from "../utils/cloduinary.js"
 import fs from 'fs'
 
+
+const generateAccessTokenOnly = async function(userId){
+    try {
+        const user = await User.findById(userId)
+        const accessToken = await user.generateAccessToken()
+        return accessToken
+    }
+    catch (error) {
+        console.log("error in generating access token")
+    }}
+const generateRefreshTokenOnly = async function (userId){
+    try {
+        const user = await User.findById(userId)
+        const refreshToken = await user.generateRefreshToken()
+        user.refresh_token = refreshToken
+        await user.save({
+            validateBeforeSave:false
+        })
+        return refreshToken
+    } catch (error) {
+        console.log("error in generating refreshtoken")
+    }
+}
+
+
 const userRegister = async function (req,res){
     try {
         const {username,email,password,role,gender} = req.body
@@ -74,4 +99,75 @@ const userRegister = async function (req,res){
     }
 }
 
-export {userRegister}
+
+const userLogin = async function (req,res){
+        try {
+        const {email,password}=req.body
+
+        
+        const user = await User.findOne({email,})
+        if(!user){
+            return res.status(403).json({
+                message:"User doesnot exist"
+            })
+        }
+    
+        const isPasswordValid = await user.isPasswordRight(password)
+       
+        if(!isPasswordValid){
+            return res.status(500).json({
+                message:"Password incorrect"
+            })
+        }
+        const accessToken = await generateAccessTokenOnly(user._id)
+        const refreshToken= await generateRefreshTokenOnly(user._id)
+    
+        if(!accessToken || !refreshToken){
+            return res.status(500).json({
+                message:"Error generating tokens"
+            })
+        }
+    
+        const loggedUser = await User.findById(user._id).select("-password -refresh_token")
+        if(!loggedUser){
+            return res.status(500).json({
+                message:"User couldnot login"
+            })
+        }
+        const options ={
+            httpOnly:true,
+            secure:true
+        }
+            res.status(200)
+            .cookie("accessToken",accessToken,options)
+            .cookie("refreshToken",refreshToken,options)
+            .json({
+                message:"User Successfully logged",
+                data:loggedUser
+            })
+    }
+ catch (error) {
+    res.status(500).json({
+        message:"Error Occured in logging in"
+    })
+}}
+
+const currentUser = async function (req,res){
+    try {
+        const user = await User.findById(req.user._id).select("-password -refresh_token")
+        if(!user){
+            return res.status(500).json({
+                message:"User not logged in"
+            })
+        }
+        res.status(200).json({
+            message:"User fetched",
+            data:user
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Error In Getting Current user"
+        })
+    }
+}
+export {userRegister,userLogin,currentUser}
