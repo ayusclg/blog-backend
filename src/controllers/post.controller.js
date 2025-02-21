@@ -127,4 +127,25 @@ const updatePost = async function (req,res){
        }) 
     }
 }
-export {createPost,fetchPost,fetchSinglePost,updatePost}
+const deletePost = async function (req,res){
+    try {
+        const user = await User.findById(req.user._id)
+        const post = await Post.findById(req.params._id)
+        if(user._id.toString()!==post.created_by.toString()){
+            return res.status(500).json({
+                message:"you have no permission"
+            })
+        }
+         await Post.deleteOne({created_by:req.user._id})
+
+         res.status(200).json({
+            message:"Successfully deleted",
+            data:req.params._id
+         })
+    } catch (error) {
+        res.status(500).json({
+            message:"Error deleting the post"
+        })
+    }
+}
+export {createPost,fetchPost,fetchSinglePost,updatePost,deletePost}
