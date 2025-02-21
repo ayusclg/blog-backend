@@ -4,6 +4,10 @@ import cookieParser from 'cookie-parser';
 import userRoutes from './routes/user.routes.js'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import postRoutes from './routes/post.routes.js'
+
+
+
 const app = express();
 const port = 3000;
 const hostName = '127.0.0.1';
@@ -28,5 +32,7 @@ dbConnect()
 })
 
 
+//routes
 
 app.use("/api/v1/auth",userRoutes)
+app.use("/post",postRoutes)
