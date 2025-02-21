@@ -45,7 +45,7 @@ const fetchPost = async function (req,res){
         const category = req.query.category
 
         const postFilter = {}
-        postFilter.categories = category
+        postFilter.category = category
 
         const postt = await Post.find(postFilter).populate("created_by","username")
         .skip((page -1)*perPage)
@@ -71,4 +71,60 @@ const fetchPost = async function (req,res){
         })
     }
 }
-export {createPost,fetchPost}
+
+const fetchSinglePost = async function (req,res){
+    try {
+        const post = await Post.findById(req.params._id).populate("created_by","username")
+        if(!post){
+            return res.status(500).json({
+                message:"No Post Found"
+            })
+        }
+        res.status(200).json({
+            message:"POST FETCHED",
+            data:post
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Error Fetching single post"
+        })
+    }
+}
+
+const updatePost = async function (req,res){
+    try {
+        const user = await User.findById(req.user._id)
+        const post = await Post.findById(req.params._id)
+        if(post.created_by.toString() !== user._id.toString()){
+            return res.status(400).json({
+                message:"You cannot modify the content"
+            })
+        }
+        const {title,content,category} =req.body
+        
+
+        const update = await Post.findByIdAndUpdate(req.params._id,{
+            $Set:{
+                title,
+                content,
+                category,
+            }
+        },
+        {new:true}
+    ).populate("created_by","username")
+        if(!update){
+            return res.status(500).json({
+                message:"Post Not Updated"
+            })
+        }
+        res.status(200).json({
+            message:"UPDATE SUCCESSFULL",
+            data:update
+        })
+    } catch (error) {
+       res.status(500).json({
+        message:"Error Updating Post"
+       }) 
+    }
+}
+export {createPost,fetchPost,fetchSinglePost,updatePost}
