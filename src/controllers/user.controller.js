@@ -231,7 +231,7 @@ const updateUser = async function (req,res){
     }
 }
 
-    const updatePassword = async function (req,res){
+const updatePassword = async function (req,res){
         const {oldPassword ,newPassword} =req.body
         const user = await User.findById(req.user._id)
         if(!user){
@@ -256,4 +256,49 @@ const updateUser = async function (req,res){
             })
     }
 
-export {userRegister,userLogin,currentUser,userLogout,updateUser,updatePassword}
+
+const updateAvatar = async function (req,res){
+    try {
+        // const avatarExist = req.file?.path
+        // if(!avatarExist){
+        //     return res.status(400).json({
+        //         message:"No Avatar Exist"
+        //     })
+        // }
+
+        const { oldPublicId } = req.body;
+
+        if(oldPublicId){
+
+            await cloudinary.uploader.destroy(oldPublicId);
+        }
+
+        const newAvatar = `public/images/${req.file.filename}`
+        
+        const newUpload = await uploadingOnCloudinary(newAvatar)
+
+        const Update = await User.findByIdAndUpdate(req.user._id,{
+            $set:{
+                avatar: newUpload.secure_url
+            }},
+            {
+                new:true
+            }
+        )
+        if(!Update){
+            return res.status(500).json({
+                message:"Error in update field"
+            })
+        }
+
+        res.status(200).json({
+            message:"Successfully Updated Avatar",
+            data:newUpload.secure_url
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Error in updating avatar"
+        })
+    }
+}
+export {userRegister,userLogin,currentUser,userLogout,updateUser,updatePassword,updateAvatar}
