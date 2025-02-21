@@ -37,4 +37,38 @@ const createPost = async function (req,res){
         })
     }
 }
-export {createPost}
+
+const fetchPost = async function (req,res){
+    try {
+        const page = parseInt(req.query.page)|| 1
+        const perPage = parseInt(req.query.perPage)||2
+        const category = req.query.category
+
+        const postFilter = {}
+        postFilter.categories = category
+
+        const postt = await Post.find(postFilter).populate("created_by","username")
+        .skip((page -1)*perPage)
+        .limit(perPage)
+
+        const totalPost = await Post.countDocuments(postFilter)
+
+        if(!totalPost){
+            return res.status(500).json({
+                message:"No Post Found"
+            })
+        }
+        res.status(200).json({
+            message:"POST FETCHED",
+            page:page,
+            perPage:perPage,
+            total:totalPost,
+            post:postt
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Error in fetching post"
+        })
+    }
+}
+export {createPost,fetchPost}
