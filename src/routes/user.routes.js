@@ -1,6 +1,6 @@
 import Router from "router";
 import { Upload } from "../middlewares/multer.middlewares.js";
-import { currentUser, userLogin, userRegister } from "../controllers/user.controller.js";
+import { currentUser, userLogin, userLogout, userRegister } from "../controllers/user.controller.js";
 import Joi from "joi";
 import fs from 'fs'
 import { verifyToken } from "../middlewares/auth.middlewares.js";
@@ -36,5 +36,6 @@ router.route("/register").post(Upload.single("avatar"),async function(req,res,ne
 
 router.route("/login").post(userLogin)
 router.route("/get").get(verifyToken,currentUser)
+router.route("/logout").post(verifyToken,userLogout)
 
 export default router

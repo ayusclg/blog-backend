@@ -170,4 +170,35 @@ const currentUser = async function (req,res){
         })
     }
 }
-export {userRegister,userLogin,currentUser}
+
+const userLogout = async function (req,res){
+try {
+    const user = await User.findByIdAndUpdate(req.user._id,{
+        $set:{
+        refresh_token:undefined
+    }
+    },
+    { new:true}).select("-password -refresh_token")
+
+    if(!user){
+        return res.status(400).json({
+            message:"Error in getting user"
+        })
+    }
+    const options ={
+        httpOnly:true,
+        secure:true
+    }
+    res.status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json({
+        message:"Successfully log out"
+    })
+} catch (error) {
+    res.status(500).json({
+        message:"Error in logging out"
+    })
+}
+}
+export {userRegister,userLogin,currentUser,userLogout}

@@ -15,9 +15,9 @@ dotenv.config('./env')
     
 
 
-    const uploadingOnCloudinary = async function(localFilePath){
+    const uploadingOnCloudinary = async function(localFilePath,next){
         try {
-            if(!localFilePath) return null
+            if(!localFilePath) return next()
             const response = await cloudinary.uploader.upload(localFilePath,{
                 resource_type:"auto"
             })
@@ -28,7 +28,7 @@ dotenv.config('./env')
         } catch (error) {
             fs.unlinkSync(localFilePath)
             console.log('error occured in Uploading',error)
-            return null
+            return next()
             
         }
     }
