@@ -35,6 +35,6 @@ dbConnect()
 
 //routes
 
-app.use("/api/v1/auth",userRoutes)
+app.use("/auth",userRoutes)
 app.use("/post",postRoutes)
 app.use("/admin",adminRoutes)

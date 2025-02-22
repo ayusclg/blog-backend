@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js"
 import { uploadingOnCloudinary } from "../utils/cloduinary.js"
 import fs from 'fs'
+import jwt from 'jsonwebtoken'
 
 
 const generateAccessTokenOnly = async function(userId){
@@ -301,4 +302,38 @@ const updateAvatar = async function (req,res){
         })
     }
 }
-export {userRegister,userLogin,currentUser,userLogout,updateUser,updatePassword,updateAvatar}
+
+const newAccessToken = async function (req,res){
+    try {
+        const token = req.cookies?.refreshToken
+        if(!token){
+            return res.status(500).json({
+                message:"Token Not Found"
+            })
+        }
+        const decode = jwt.verify(token ,process.env.REFRESH_TOKEN_SECRET)
+        const user = await User.findById(decode._id).select("-password -refresh_token")
+        if(!user){
+            return res.status(200).json({
+                message:"Error in accessing the user details"
+            })
+        }
+        const newAccess = await generateAccessTokenOnly(user._id)
+        console.log("access:",newAccess)
+
+        const options ={
+            httpOnly:true,
+            secure:true
+        }
+        res.cookie("accessToken",newAccess,options)
+        .status(200).json({
+            message:"Successfully Generated"
+        })
+            
+    } catch (error) {
+        res.status(400).json({
+            message:"Error In Generating New AccessToken For The User"
+        })
+    }
+}
+export {userRegister,userLogin,currentUser,userLogout,updateUser,updatePassword,updateAvatar,newAccessToken}
