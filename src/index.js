@@ -5,6 +5,7 @@ import userRoutes from './routes/user.routes.js'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import postRoutes from './routes/post.routes.js'
+import adminRoutes from './routes/admin.routes.js'
 
 
 
@@ -36,3 +37,4 @@ dbConnect()
 
 app.use("/api/v1/auth",userRoutes)
 app.use("/post",postRoutes)
+app.use("/admin",adminRoutes)
